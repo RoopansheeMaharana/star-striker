@@ -7,12 +7,21 @@ from settings import (WIDTH, HEIGHT, WHITE, ORANGE,
 
 class Player:
     def __init__(self):
-        self.x      = WIDTH  // 2
-        self.y      = HEIGHT - 100
-        self.speed  = 5
-        self.health = 3
+        self.x            = WIDTH  // 2
+        self.y            = HEIGHT - 100
+        self.speed        = 5
+        self.base_speed   = 5
+        self.health       = 3
+        # Power-up timers
+        self.triple_timer = 0
+        self.speed_timer  = 0
+        self.shield       = False
+        self.shield_timer = 0
 
     def update(self, keys):
+        # Apply speed boost if active
+        self.speed = self.base_speed * 2 if self.speed_timer > 0 else self.base_speed
+
         if keys[pygame.K_LEFT]  or keys[pygame.K_a]:  self.x -= self.speed
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:  self.x += self.speed
         if keys[pygame.K_UP]    or keys[pygame.K_w]:  self.y -= self.speed
@@ -22,8 +31,39 @@ class Player:
         self.x = max(25, min(WIDTH  - 25, self.x))
         self.y = max(25, min(HEIGHT - 25, self.y))
 
+        # Count down power-up timers
+        if self.triple_timer > 0:
+            self.triple_timer -= 1
+        if self.speed_timer > 0:
+            self.speed_timer -= 1
+        if self.shield_timer > 0:
+            self.shield_timer -= 1
+        else:
+            self.shield = False
+
+    def take_hit(self):
+        """Returns True if damage was taken, False if shield blocked it."""
+        if self.shield:
+            self.shield       = False
+            self.shield_timer = 0
+            return False
+        self.health -= 1
+        return True
+
+    def apply_powerup(self, kind):
+        if kind == "triple":
+            self.triple_timer = 300   # 5 seconds at 60 fps
+        elif kind == "speed":
+            self.speed_timer  = 300
+        elif kind == "shield":
+            self.shield       = True
+            self.shield_timer = 300
+
     def draw(self, screen):
         x, y = self.x, self.y
+        # Shield ring
+        if self.shield:
+            pygame.draw.circle(screen, (80, 180, 255), (x, y), 36, 3)
         pygame.draw.polygon(screen, BLUE_FLAME, [
             (x-14, y+28), (x+14, y+28), (x, y+58)])
         pygame.draw.polygon(screen, CYAN_FLAME, [
