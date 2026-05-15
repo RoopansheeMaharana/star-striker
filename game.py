@@ -15,6 +15,7 @@ from screens     import start_screen, game_over_screen
 from boss        import Boss
 from powerup     import PowerUp
 
+pygame.mixer.pre_init(44100, -16, 2)
 pygame.init()
 
 screen   = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -33,7 +34,7 @@ bullets          = []
 enemies          = []
 enemy_bullets    = []
 explosions       = []
-powerups         = []       # NEW
+powerups         = []
 boss             = None
 shoot_cooldown   = 0
 enemy_timer      = 0
@@ -62,7 +63,6 @@ while running:
         shoot_cooldown -= 1
     if keys[pygame.K_SPACE] and shoot_cooldown == 0:
         if player.triple_timer > 0:
-            # Fire 3 bullets in spread
             bullets.append(Bullet(player.x, player.y - 30, angle=-90))
             bullets.append(Bullet(player.x, player.y - 30, angle=-75))
             bullets.append(Bullet(player.x, player.y - 30, angle=-105))
@@ -141,7 +141,6 @@ while running:
                 score       += 10
                 explosions.append(Explosion(enemy.x, enemy.y))
                 sounds["explosion"].play()
-                # 25% chance to drop a power-up
                 if random.random() < 0.25:
                     powerups.append(PowerUp(enemy.x, enemy.y))
 
@@ -163,7 +162,6 @@ while running:
                                 boss.y + random.randint(-20, 20),
                                 count=30))
                     sounds["explosion"].play()
-                    # Boss always drops a power-up
                     powerups.append(PowerUp(boss.x, boss.y))
                 else:
                     sounds["hit"].play()
@@ -182,7 +180,6 @@ while running:
                 explosions.append(
                     Explosion(player.x, player.y, count=10))
             else:
-                # Shield blocked it — flash effect
                 explosions.append(
                     Explosion(eb.x, eb.y, count=6))
 
@@ -208,7 +205,7 @@ while running:
         if dist < pu.size + 20:
             player.apply_powerup(pu.type)
             pu.alive = False
-            sounds["levelup"].play()    # satisfying collect sound
+            sounds["levelup"].play()
 
     # Update explosions
     for explosion in explosions[:]:
@@ -235,11 +232,11 @@ while running:
 
     draw_stars(game_surf)
 
-    for bullet   in bullets:    bullet.draw(game_surf)
-    for eb       in enemy_bullets: eb.draw(game_surf)
-    for enemy    in enemies:    enemy.draw(game_surf)
-    for pu       in powerups:   pu.draw(game_surf)
-    for explosion in explosions: explosion.draw(game_surf)
+    for bullet    in bullets:       bullet.draw(game_surf)
+    for eb        in enemy_bullets: eb.draw(game_surf)
+    for enemy     in enemies:       enemy.draw(game_surf)
+    for pu        in powerups:      pu.draw(game_surf)
+    for explosion in explosions:    explosion.draw(game_surf)
 
     if boss and boss.alive:
         boss.draw(game_surf)
